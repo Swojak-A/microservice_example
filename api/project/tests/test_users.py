@@ -123,4 +123,20 @@ class TestUserService(BaseTestCase):
             self.assertEqual(response.status_code, 404)
             self.assertIn('User does not exist.', data['message'])
             self.assertIn('fail', data['status'])
-    
+
+    def test_all_users(self):
+        """Ensure get all user works properly"""
+        add_user('test_user1', 'test.user1@example.com')
+        add_user('test_user2', 'test.user2@example.com')
+        with self.client:
+            response = self.client.get('/users')
+            data = json.loads(response.data.decode())
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(len(data['data']['users']), 2)
+            self.assertTrue('created_at' in data['data']['users'][0])
+            self.assertTrue('created_at' in data['data']['users'][0])
+            self.assertIn('test_user1', data['data']['users'][0]['username'])
+            self.assertIn('test.user1@example.com', data['data']['users'][0]['email'])
+            self.assertIn('test_user2', data['data']['users'][1]['username'])
+            self.assertIn('test.user2@example.com', data['data']['users'][1]['email'])
+            self.assertIn('success', data['status'])
