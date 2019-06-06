@@ -7,12 +7,13 @@ import os
 from flask import current_app
 from flask_testing import TestCase
 
-from project import app
+from project import create_app
 
 
 # variables
 docker_build = True if os.environ.get("DOCKER_BUILD") else False
 
+app = create_app()
 
 # test cases
 class TestDevelopmentConfig(TestCase):
