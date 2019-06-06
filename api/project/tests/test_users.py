@@ -4,7 +4,9 @@
 
 import json
 
+from project import db
 from project.tests.base import BaseTestCase
+from project.api.models import User
 
 
 class TestUserService(BaseTestCase):
@@ -81,3 +83,17 @@ class TestUserService(BaseTestCase):
             self.assertIn(
                 'Sorry. That email already exists.', data['message'])
             self.assertIn('fail', data['status'])
+
+    def test_single_user(self):
+        """Ensure get single user works properly"""
+        user = User(username='test_user', email='test.user@example.com')
+        db.session.add(user)
+        db.session.commit()
+        with self.client:
+            response = self.client.get(f'/users/{user.id}')
+            data = json.loads(response.data.decode())
+            self.assertEqual(response.status_code, 200)
+            self.assertTrue('created_at' in data['data'])
+            self.assertIn('test_user', data['data']['username'])
+            self.assertIn('test.user@example.com', data['data']['email'])
+            self.assertIn('success', data['status'])
