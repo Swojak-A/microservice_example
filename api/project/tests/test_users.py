@@ -97,3 +97,21 @@ class TestUserService(BaseTestCase):
             self.assertIn('test_user', data['data']['username'])
             self.assertIn('test.user@example.com', data['data']['email'])
             self.assertIn('success', data['status'])
+
+    def test_single_user_no_id(self):
+        """Ensure error if id not provided"""
+        with self.client:
+            response = self.client.get('/users/str-not-int')
+            data = json.loads(response.data.decode())
+            self.assertEqual(response.status_code, 404)
+            self.assertIn('User does not exist.', data['message'])
+            self.assertIn('fail', data['status'])
+
+    def test_single_user_incorrect_id(self):
+        """Ensure error if it does not exist"""
+        with self.client:
+            response = self.client.get('/users/999')
+            data = json.loads(response.data.decode())
+            self.assertEqual(response.status_code, 404)
+            self.assertIn('User does not exist.', data['message'])
+            self.assertIn('fail', data['status'])
