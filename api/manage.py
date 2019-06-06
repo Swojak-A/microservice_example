@@ -29,5 +29,13 @@ def test():
         return 0
     return 1
 
+@manager.command
+def seed_db():
+    """Seeds the database"""
+    db.session.add(User(username="test_user_seed1", email="test.user.seed1@example.com"))
+    db.session.add(User(username="test_user_seed2", email="test.user.seed2@example.com"))
+    db.session.commit()
+
+
 if __name__ == '__main__':
     manager.run()
