@@ -23,17 +23,46 @@ def ping_pong():
 def add_user():
     post_data = request.get_json()
 
+    # handle empty request json
+    if not post_data:
+        response_object = {
+            'status': 'fail',
+            'message': 'Invalid payload.'
+        }
+        return jsonify(response_object), 400
+
+    # get data from response json
     username = post_data.get('username')
     email = post_data.get('email')
 
-    db.session.add(User(username=username, email=email))
-    db.session.commit()
+    try:
+        user = User.query.filter_by(email=email).first()
+        # handle request with correct data
+        if not user:
+            db.session.add(User(username=username, email=email))
+            db.session.commit()
 
-    response_object = {
-        'status': 'success',
-        'message': f'{email} was added!'
-    }
+            response_object = {
+                'status': 'success',
+                'message': f'{email} was added!'
+            }
 
-    return jsonify(response_object), 201
+            return jsonify(response_object), 201
+        else:
+            # handle request with existing email
+            response_object = {
+                'status': 'fail',
+                'message': 'Sorry. That email already exists.'
+            }
+            return jsonify(response_object), 400
+
+    except exc.IntegrityError as e:
+        # handling incomplete requests
+        db.session.rollback()
+        response_object = {
+            'status': 'fail',
+            'message': 'Invalid payload.'
+        }
+        return jsonify(response_object), 400
 
 
