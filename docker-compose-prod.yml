@@ -1,0 +1,35 @@
+version: '2.1'
+
+services:
+  db:
+    container_name: db
+    build: ./db
+    ports:
+      - 5435:5432 # expose ports - HOST:CONTAINER
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    healthcheck:
+      test: exit 0
+
+  api:
+    container_name: api
+    build: ./api
+    ports:
+      - 3301:3300 # expose ports - HOST:CONTAINER
+    environment:
+      - DOCKER_BUILD=1
+      - APP_SETTINGS=project.config.DevelopmentConfig
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/users_dev
+      - DATABASE_TEST_URL=postgres://postgres:postgres@db:5432/users_tests
+    depends_on:
+      db:
+        condition: service_healthy
+    links:
+      - db
+    command: >
+      sh -c "python manage.py recreate_db &&
+              python manage.py seed_db &&
+              python manage.py runserver"
+
+
