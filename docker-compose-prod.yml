@@ -19,17 +19,24 @@ services:
       - 3301:3300 # expose ports - HOST:CONTAINER
     environment:
       - DOCKER_BUILD=1
-      - APP_SETTINGS=project.config.DevelopmentConfig
-      - DATABASE_URL=postgres://postgres:postgres@db:5432/users_dev
+      - APP_SETTINGS=project.config.ProductionConfig
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/users_prod
       - DATABASE_TEST_URL=postgres://postgres:postgres@db:5432/users_tests
     depends_on:
       db:
         condition: service_healthy
     links:
       - db
-    command: >
-      sh -c "python manage.py recreate_db &&
-              python manage.py seed_db &&
-              python manage.py runserver"
+    command: gunicorn -b 0.0.0.0:3300 manage:app
 
-
+  nginx:
+    container_name: nginx
+    build: ./nginx
+    restart: always
+    ports:
+      - 80:80
+    depends_on:
+      api:
+        condition: service_started
+    links:
+      - api
